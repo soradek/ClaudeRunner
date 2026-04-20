@@ -1,0 +1,42 @@
+name: Build IPA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode.app
+
+      - name: Build Archive
+        run: |
+          xcodebuild archive \
+            -project ClaudeRunner.xcodeproj \
+            -scheme ClaudeRunner \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $RUNNER_TEMP/ClaudeRunner.xcarchive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Create IPA
+        run: |
+          mkdir -p Payload
+          cp -r $RUNNER_TEMP/ClaudeRunner.xcarchive/Products/Applications/ClaudeRunner.app Payload/
+          zip -r ClaudeRunner.ipa Payload/
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: ClaudeRunner-IPA
+          path: ClaudeRunner.ipa
+          retention-days: 30
