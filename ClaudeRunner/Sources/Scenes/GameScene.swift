@@ -439,17 +439,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         let categories = a.categoryBitMask | b.categoryBitMask
 
+        // Get player body and "other" body to reason about positions, not normals
+        let playerBody = a.categoryBitMask == PhysicsCategory.player ? a : b
+        let otherBody  = a.categoryBitMask == PhysicsCategory.player ? b : a
+
         if categories == (PhysicsCategory.player | PhysicsCategory.ground) ||
            categories == (PhysicsCategory.player | PhysicsCategory.platform) {
-            // Landing check – contact normal pointing up means ground below
-            if contact.contactNormal.dy > 0.5 {
-                player.isOnGround = true
+            // Landing: player's feet above ground's top by some margin
+            if let pNode = playerBody.node, let gNode = otherBody.node {
+                if pNode.position.y > gNode.position.y {
+                    player.isOnGround = true
+                }
             }
         }
 
         if categories == (PhysicsCategory.player | PhysicsCategory.coin) {
-            let coinBody = a.categoryBitMask == PhysicsCategory.coin ? a : b
-            if let coin = coinBody.node as? CoinNode {
+            if let coin = otherBody.node as? CoinNode {
                 coin.collect {
                     self.coins += 1
                     GameManager.shared.totalCoins += 1
@@ -460,11 +465,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
 
         if categories == (PhysicsCategory.player | PhysicsCategory.enemy) {
-            let enemyBody = a.categoryBitMask == PhysicsCategory.enemy ? a : b
-            if let enemy = enemyBody.node as? EnemyNode {
-                // Stomping: player velocity going down and contact from above
+            if let enemy = otherBody.node as? EnemyNode {
                 let playerVelY = player.physicsBody?.velocity.dy ?? 0
-                if playerVelY < -50 && contact.contactNormal.dy > 0.3 {
+                // Stomping: player is falling and player's y is above enemy's y
+                if playerVelY < -50 && player.position.y > enemy.position.y + 5 {
                     stompEnemy(enemy)
                 } else if !player.isInvincible {
                     loseLife()
@@ -474,6 +478,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         if categories == (PhysicsCategory.player | PhysicsCategory.goal) {
             levelComplete()
+        }
+    }
+
+    func didEnd(_ contact: SKPhysicsContact) {
+        let categories = contact.bodyA.categoryBitMask | contact.bodyB.categoryBitMask
+        if categories == (PhysicsCategory.player | PhysicsCategory.ground) ||
+           categories == (PhysicsCategory.player | PhysicsCategory.platform) {
+            // Player left a surface — will be set true again on next landing
+            player.isOnGround = false
         }
     }
 
