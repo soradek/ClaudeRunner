@@ -16,7 +16,6 @@
 		AA000007 /* CoinNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA000007 /* CoinNode.swift */; };
 		AA000008 /* MenuScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA000008 /* MenuScene.swift */; };
 		AA000009 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA000009 /* GameScene.swift */; };
-		AA000010 /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = BA000010 /* Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -182,7 +181,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA000010 /* Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
